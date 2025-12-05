@@ -93,7 +93,7 @@
                             <label for="picture" class="form-label">Picture</label>
                             @if($item->picture)
                                 <div class="mb-2">
-                                    <img src="{{ asset('storage/' . $item->picture) }}" alt="{{ $item->title }}" style="max-width: 200px; max-height: 200px;">
+                                    <img src="{{ asset('storage/images/' . $item->picture) }}" alt="{{ $item->title }}" style="max-width: 200px; max-height: 200px;">
                                     <p class="text-muted small">Current image (leave empty to keep this image)</p>
                                 </div>
                             @endif

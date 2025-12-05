@@ -27,7 +27,15 @@ class ItemController extends Controller
             'picture' => 'required|image|max:2048',
         ]);
 
-        $picturePath = $request->file('picture')->store('images', 'public');
+        // Generate unique filename with timestamp
+        $file = $request->file('picture');
+        $extension = $file->getClientOriginalExtension();
+        $timestamp = time();
+        $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+        $filename = $originalName . '_' . $timestamp . '.' . $extension;
+        
+        // Store in storage/app/public/images
+        $file->storeAs('images', $filename, 'public');
 
         Item::create([
             'category_id' => $request->category_id,
@@ -36,7 +44,7 @@ class ItemController extends Controller
             'price' => $request->price,
             'quantity' => $request->quantity,
             'sku' => $request->sku,
-            'picture' => $picturePath,
+            'picture' => $filename,
         ]);
 
         return redirect()->route('items.index');
@@ -69,13 +77,22 @@ class ItemController extends Controller
 
         $item = Item::findOrFail($id);
 
-        $picturePath = $item->picture;
+        $filename = $item->picture;
         if ($request->hasFile('picture')) {
             // Delete old image
-            if ($item->picture && Storage::disk('public')->exists($item->picture)) {
-                Storage::disk('public')->delete($item->picture);
+            if ($item->picture && Storage::disk('public')->exists('images/' . $item->picture)) {
+                Storage::disk('public')->delete('images/' . $item->picture);
             }
-            $picturePath = $request->file('picture')->store('images', 'public');
+            
+            // Generate unique filename with timestamp
+            $file = $request->file('picture');
+            $extension = $file->getClientOriginalExtension();
+            $timestamp = time();
+            $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            $filename = $originalName . '_' . $timestamp . '.' . $extension;
+            
+            // Store in storage/app/public/images
+            $file->storeAs('images', $filename, 'public');
         }
 
         $item->update([
@@ -85,7 +102,7 @@ class ItemController extends Controller
             'price' => $request->price,
             'quantity' => $request->quantity,
             'sku' => $request->sku,
-            'picture' => $picturePath,
+            'picture' => $filename,
         ]);
 
         return redirect()->route('items.index');

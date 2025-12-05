@@ -32,7 +32,7 @@
                                 @foreach($items as $item)
                                     <tr>
                                         <td>
-                                            <img src="{{ asset('storage/' . $item->picture) }}" alt="{{ $item->title }}" style="width: 50px; height: 50px; object-fit: cover;">
+                                            <img src="{{ asset('storage/images/' . $item->picture) }}" alt="{{ $item->title }}" style="width: 50px; height: 50px; object-fit: cover;">
                                         </td>
                                         <td>{{ $item->title }}</td>
                                         <td>{{ $item->category->name }}</td>
