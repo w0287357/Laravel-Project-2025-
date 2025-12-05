@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
 use App\Models\Item;
 use App\Models\Category;
 
@@ -34,8 +36,24 @@ class ItemController extends Controller
         $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
         $filename = $originalName . '_' . $timestamp . '.' . $extension;
         
-        // Store in storage/app/public/images
+        // Get full storage path
+        $storagePath = storage_path('app/public/images/');
+        
+        // Store original image
         $file->storeAs('images', $filename, 'public');
+        
+        // Create image manager instance
+        $manager = new ImageManager(new Driver());
+        
+        // Create thumbnail (100x100)
+        $thumbnail = $manager->read($file);
+        $thumbnail->cover(100, 100);
+        $thumbnail->save($storagePath . 'tn_' . $filename);
+        
+        // Create large preview (300x300)
+        $large = $manager->read($file);
+        $large->cover(300, 300);
+        $large->save($storagePath . 'lrg_' . $filename);
 
         Item::create([
             'category_id' => $request->category_id,
@@ -79,9 +97,13 @@ class ItemController extends Controller
 
         $filename = $item->picture;
         if ($request->hasFile('picture')) {
-            // Delete old image
-            if ($item->picture && Storage::disk('public')->exists('images/' . $item->picture)) {
-                Storage::disk('public')->delete('images/' . $item->picture);
+            // Delete old images (all 3 versions)
+            if ($item->picture) {
+                Storage::disk('public')->delete([
+                    'images/' . $item->picture,
+                    'images/tn_' . $item->picture,
+                    'images/lrg_' . $item->picture,
+                ]);
             }
             
             // Generate unique filename with timestamp
@@ -91,8 +113,24 @@ class ItemController extends Controller
             $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
             $filename = $originalName . '_' . $timestamp . '.' . $extension;
             
-            // Store in storage/app/public/images
+            // Get full storage path
+            $storagePath = storage_path('app/public/images/');
+            
+            // Store original image
             $file->storeAs('images', $filename, 'public');
+            
+            // Create image manager instance
+            $manager = new ImageManager(new Driver());
+            
+            // Create thumbnail (100x100)
+            $thumbnail = $manager->read($file);
+            $thumbnail->cover(100, 100);
+            $thumbnail->save($storagePath . 'tn_' . $filename);
+            
+            // Create large preview (300x300)
+            $large = $manager->read($file);
+            $large->cover(300, 300);
+            $large->save($storagePath . 'lrg_' . $filename);
         }
 
         $item->update([
